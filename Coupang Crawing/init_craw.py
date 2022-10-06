@@ -1,6 +1,6 @@
 import os
 import shutil
-# import subprocess
+import subprocess
 import chromedriver_autoinstaller
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -12,8 +12,8 @@ def init_craw():
     except FileNotFoundError:
         pass
 
-    # subprocess.Popen(
-    #     r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrometemp"')  # 디버거 크롬 구동
+    subprocess.Popen(
+        r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrometemp"')  # 디버거 크롬 구동
 
 
 def get_path():
@@ -36,10 +36,9 @@ def get_driver(driver_path):
     # 셀레니움 크롬 숨김 옵션
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('headless')
-    chrome_options.add_argument('window-size=1920x1080')
     chrome_options.add_argument("disable-gpu")
     chrome_options.add_argument(
         "user-agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
     chrome_options.add_argument("lang=ko_KR")
 
-    return webdriver.Chrome(driver_path, options=option, chrome_options=chrome_options)
+    return webdriver.Chrome(driver_path, options=option)
