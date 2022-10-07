@@ -1,6 +1,7 @@
 import time
 import pandas as pd
 from init_craw import *
+from capture_review import *
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,6 +9,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # 쿠팡 상품 ID 입력
 product_id = input("product_id: ")
+user_name = '허*만'  # input("user_name: ")
+content_target = ['10만원', '오픈형']
 
 init_craw()
 driver = get_driver(get_path())
@@ -20,6 +23,13 @@ time.sleep(1)
 # 리뷰 탭 클릭
 wait = WebDriverWait(driver, 5)
 wait.until(EC.element_to_be_clickable((By.NAME, 'review'))).click()
+driver.implicitly_wait(10)
+time.sleep(1)
+
+# 최신순 클릭
+wait = WebDriverWait(driver, 5)
+wait.until(EC.element_to_be_clickable(
+    (By.CLASS_NAME, 'sdp-review__article__order__sort__newest-btn'))).click()
 driver.implicitly_wait(10)
 time.sleep(1)
 
@@ -46,44 +56,56 @@ while True:  # {
 
     if (index % 12 == 0):
         index += 2
-
-    if (index == 20):
+    if (index == 3):
         break
-
     if (len(review_page_button) == 0):
         break
+
     print('index=', index)
     print('index%12=', index % 12)
+
+    # 리뷰 페이지 클릭
     review_page_button[index % 12].click()
     driver.implicitly_wait(10)
     time.sleep(0.5)
     index += 1
 
+    # 리뷰 페이지 소스 가져오기
     soup = BeautifulSoup(driver.page_source, 'html.parser')
-
     reviews = soup.select('article.sdp-review__article__list')  # 리뷰 리스트
     review_user_name_list = [review.select_one(
-        'span.sdp-review__article__list__info__user__name').get_text() for review in reviews]  # 리뷰 작성자 이름
+        'span.sdp-review__article__list__info__user__name').get_text(strip=True) for review in reviews]  # 리뷰 작성자 이름
     review_user_id_list = [review.select_one('span.sdp-review__article__list__info__user__name')[
         'data-member-id'] for review in reviews]    # 리뷰 작성자 ID
     review_user_date_list = [review.select_one(
         'div.sdp-review__article__list__info__product-info__reg-date').get_text() for review in reviews]  # 리뷰 작성일
     review_user_star_list = [review.select_one('div.sdp-review__article__list__info__product-info__star-orange')[
         'data-rating'] for review in reviews]  # 리뷰 별점
-    # review_user_content_list = [review.select_one(
-    #     'sdp-review__article__list__review__content').get_text() for review in review_list]  # 리뷰 내용
+    for review in reviews:  # {
+        content = review.select_one(
+            'div.sdp-review__article__list__review__content')
+        if content is not None:
+            review_user_content.append(content.get_text(strip=True))
+        else:
+            review_user_content.append('')
+    # }
 
     review_user_name.extend(review_user_name_list)
     review_user_id.extend(review_user_id_list)
     review_user_date.extend(review_user_date_list)
     review_user_star.extend(review_user_star_list)
-    # review_user_content.extend(review_user_content_list)
 
+    name_index = get_name_index(user_name, review_user_name_list)
+
+    if (name_index != -1):
+        user_name.replace('*', 'x')
+        capture_review(user_name, product_id,
+                       get_target_element(driver, name_index))
 # }
 driver.quit()
 
 # 리뷰 정보 저장
 dic = {'name': review_user_name, 'id': review_user_id,
-       'date': review_user_date, 'star': review_user_star}
+       'date': review_user_date, 'star': review_user_star, 'content': review_user_content}
 df = pd.DataFrame(dic)
-df.to_csv('reviews\\'+product_id+'.csv', index=False, encoding='utf-8-sig')
+df.to_csv('reviews\\'+product_id+'.csv', encoding='utf-8-sig')

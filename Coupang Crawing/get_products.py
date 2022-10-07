@@ -24,8 +24,8 @@ for page in range(1, 11):  # {
     driver.get(url)
     driver.implicitly_wait(10)
 
+    # 상품 페이지 소스 가져오기
     soup = BeautifulSoup(driver.page_source, 'html.parser')
-
     products = soup.select('li.search-product')  # 상품 리스트
     products_id_list = [product.get('data-product-id')
                         for product in products]  # 상품 id
