@@ -30,15 +30,16 @@ def get_path():
 
 
 def get_driver(driver_path):
-    option = Options()
-    option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-
-    # 셀레니움 크롬 숨김 옵션
     chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
     chrome_options.add_argument('headless')
     chrome_options.add_argument("disable-gpu")
     chrome_options.add_argument(
         "user-agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
     chrome_options.add_argument("lang=ko_KR")
 
-    return webdriver.Chrome(driver_path, options=option)
+    driver = webdriver.Chrome(
+        driver_path, options=chrome_options)
+    driver.set_window_position(0, 0)
+    driver.set_window_size(1920, 1080)
+    return driver

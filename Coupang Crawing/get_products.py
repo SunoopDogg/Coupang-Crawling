@@ -9,6 +9,8 @@ search = search.replace(' ', '+')
 
 init_craw()
 driver = get_driver(get_path())
+driver.set_window_position(0, 0)
+driver.set_window_size(1920, 1080)
 
 products_id = []
 products_name = []
