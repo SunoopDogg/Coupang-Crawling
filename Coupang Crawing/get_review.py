@@ -9,8 +9,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # 쿠팡 상품 ID 입력
 product_id = input("product_id: ")
-user_name = '허*만'  # input("user_name: ")
-content_target = ['10만원', '오픈형']
+user_name = '안*아'  # input("user_name: ")
+content_target = ['']
 
 init_craw()
 driver = get_driver(get_path())
@@ -33,79 +33,71 @@ wait.until(EC.element_to_be_clickable(
 driver.implicitly_wait(10)
 time.sleep(1)
 
-review_user_name = []
-review_user_id = []
-review_user_date = []
-review_user_star = []
-review_user_content = []
+review_name = []
+review_id = []
+review_date = []
+review_star = []
+review_content = []
 
-index = 1
+
+index = 0
 while True:  # {
-    # Q&A 탭 클릭
-    wait.until(EC.element_to_be_clickable((By.NAME, 'qna'))).click()
-    driver.implicitly_wait(10)
-    time.sleep(0.5)
-
-    # 맨 위로 스크롤
-    driver.execute_script("window.scrollTo(0, 0)")
-    time.sleep(0.5)
+    if (index == 10):
+        break
 
     # 리뷰 페이지 소스 가져오기
     review_page_button = driver.find_elements(
-        By.XPATH, '//*[@id="btfTab"]/ul[2]/li[2]/div/div[6]/section[4]/div[3]/button')
-
-    if (index % 12 == 0):
-        index += 2
-    if (index == 3):
-        break
-    if (len(review_page_button) == 0):
-        break
-
-    print('index=', index)
-    print('index%12=', index % 12)
+        By.CLASS_NAME, 'sdp-review__article__page__num')
 
     # 리뷰 페이지 클릭
-    review_page_button[index % 12].click()
+    print('data-page=', review_page_button[index].get_attribute('data-page'))
+    review_page_button[index % 10].click()
     driver.implicitly_wait(10)
-    time.sleep(0.5)
+    time.sleep(2)
     index += 1
 
     # 리뷰 페이지 소스 가져오기
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     reviews = soup.select('article.sdp-review__article__list')  # 리뷰 리스트
-    review_user_name_list = [review.select_one(
+    # print('reviews=', reviews)
+    review_name_list = [review.select_one(
         'span.sdp-review__article__list__info__user__name').get_text(strip=True) for review in reviews]  # 리뷰 작성자 이름
-    review_user_id_list = [review.select_one('span.sdp-review__article__list__info__user__name')[
+    review_id_list = [review.select_one('span.sdp-review__article__list__info__user__name')[
         'data-member-id'] for review in reviews]    # 리뷰 작성자 ID
-    review_user_date_list = [review.select_one(
+    review_date_list = [review.select_one(
         'div.sdp-review__article__list__info__product-info__reg-date').get_text() for review in reviews]  # 리뷰 작성일
-    review_user_star_list = [review.select_one('div.sdp-review__article__list__info__product-info__star-orange')[
+    review_star_list = [review.select_one('div.sdp-review__article__list__info__product-info__star-orange')[
         'data-rating'] for review in reviews]  # 리뷰 별점
+    review_content_list = []  # 리뷰 내용
     for review in reviews:  # {
         content = review.select_one(
             'div.sdp-review__article__list__review__content')
         if content is not None:
-            review_user_content.append(content.get_text(strip=True))
+            review_content_list.append(content.get_text(strip=True))
         else:
-            review_user_content.append('')
+            review_content_list.append('')
     # }
 
-    review_user_name.extend(review_user_name_list)
-    review_user_id.extend(review_user_id_list)
-    review_user_date.extend(review_user_date_list)
-    review_user_star.extend(review_user_star_list)
+    print(review_name_list)
 
-    name_index = get_name_index(user_name, review_user_name_list)
+    review_name.extend(review_name_list)
+    review_id.extend(review_id_list)
+    review_date.extend(review_date_list)
+    review_star.extend(review_star_list)
+    review_content.extend(review_content_list)
 
-    if (name_index != -1):
-        user_name.replace('*', 'x')
-        capture_review(user_name, product_id,
-                       get_target_element(driver, name_index))
+    name_index = get_name_index(user_name, review_name_list)
+    if (name_index != -1 and is_content_contain(content_target, review_content_list[name_index])):
+        element = get_target_element(driver, name_index)
+        driver.execute_script("window.scrollTo({}, {})".format(
+            element.location['x'], element.location['y']-50))
+        capture_review(user_name.replace('*', 'x'), product_id, element)
+        time.sleep(1)
 # }
 driver.quit()
 
 # 리뷰 정보 저장
-dic = {'name': review_user_name, 'id': review_user_id,
-       'date': review_user_date, 'star': review_user_star, 'content': review_user_content}
+dic = {'name': review_name, 'id': review_id,
+       'date': review_date, 'star': review_star, 'content': review_content}
 df = pd.DataFrame(dic)
 df.to_csv('reviews\\'+product_id+'.csv', encoding='utf-8-sig')

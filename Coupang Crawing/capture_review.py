@@ -16,6 +16,7 @@ def is_content_contain(content_target, review_content_list):  # {
         if content in review_content_list:
             count += 1
 
+    print('count=', count)
     if count == len(content_target):
         return True
     else:
@@ -24,7 +25,7 @@ def is_content_contain(content_target, review_content_list):  # {
 
 
 def get_target_element(driver, index):  # {
-    return driver.find_elements(By.CLASS_NAME, 'sdp-review__article__list')[index]
+    return driver.find_elements(By.CSS_SELECTOR, 'article.sdp-review__article__list')[index]
 # }
 
 
