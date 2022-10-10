@@ -1,3 +1,4 @@
+from math import prod
 from time import sleep
 from init_craw import *
 from bs4 import BeautifulSoup
@@ -31,8 +32,14 @@ for page in range(1, 11):  # {
                         for product in products]  # 상품 id
     products_name_list = [product.select_one('div.name').get_text()
                           for product in products]  # 상품 이름
-    products_price_list = [product.select_one(
-        'strong.price-value').get_text() for product in products]   # 상품 가격
+    products_price_list = []    # 상품 가격
+    for product in products:    # {
+        price = product.select_one('strong.price-value')
+        if price is not None:
+            products_price_list.append(price.get_text())
+        else:
+            products_price_list.append('0')
+    # }
     products_url_list = [product.select_one(
         'a.search-product-link').get('href') for product in products]   # 상품 url
 

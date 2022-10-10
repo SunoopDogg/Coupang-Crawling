@@ -9,8 +9,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # 쿠팡 상품 ID 입력
 product_id = input("product_id: ")
-user_name = '안*아'  # input("user_name: ")
-content_target = ['']
+user_name = '한*우'  # input("user_name: ")
+content_target = ['학생할인']
 
 init_craw()
 driver = get_driver(get_path())
