@@ -56,7 +56,7 @@ while True:  # {
     time.sleep(2)
     index += 1
 
-    # 리뷰 페이지 소스 가져오기
+    # 리뷰 페이지 리소스 가져오기
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     reviews = soup.select('article.sdp-review__article__list')  # 리뷰 리스트
     # print('reviews=', reviews)
